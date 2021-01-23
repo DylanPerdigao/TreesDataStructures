@@ -138,46 +138,6 @@ class RBTree(object):
 		else:
 			print("{}{}⬛️\t{}".format(root.word,spaces,root.line)) 
 
-def getInstructions():
-    instructions = input().upper().split()
-    instruction = ""
-    if len(instructions)>0:
-        instruction = instructions[0]
-    return instructions,instruction
-
-def getText(tree,root):
-	line = input()
-	i=0
-	while(line.upper() != 'FIM.'):
-		newLine = re.sub('[(),;.""'']','',line)
-		for word in newLine.upper().split():
-			root=tree.insertWithBlackRoot(root,word,i)
-		i+=1
-		line = input()
-	sys.stdout.write("GUARDADO.\n") 
-	return tree, root
-
-def getExampleText(tree,root):
-	texto = list()
-	texto.append("Dizem-nos os arautos que ser comediante é uma profissão de alto risco,")
-	texto.append("pois o sucesso que suscita ser o humorista eleito da corte pode ser tão")
-	texto.append("intenso e inebriante quanto o seu desgaste vertiginosamente rápido. Não")
-	texto.append("será certamente este o caso de Ricardo Araújo Pereira.")
-	texto.append("RAP é um corredor de fundo. Começou em 1997 a colaborar com as Produções")
-	texto.append("Fictícias — à época a maior fábrica de escrita e produção de humor —,")
-	texto.append("onde entrou logo pela porta grande, a escrever sketches para Herman José,")
-	texto.append("outro grande comediante e um dos seus maiores ídolos. Tinha então 23 anos.")
-	texto.append("Seis anos depois, na SIC Radical, deu a cara como protagonista do “Gato")
-	texto.append("Fedorento” e tornou-se rapidamente na incontornável referência do humor")
-	texto.append("contemporâneo nacional.")
-	i=0
-	for line in texto:
-		newLine = re.sub('[(),;.“”]','',line)
-		for word in newLine.upper().split():
-			root=tree.insertWithBlackRoot(root,word,i)
-		i+=1
-	sys.stdout.write("GUARDADO.\n") 
-	return tree,root
 
 def readText(src,tree,root):
 	with open(src,'r',encoding="utf-8") as f:
@@ -231,80 +191,46 @@ def selectRandomWords(src,n):
 	return words,random.randint(0,len(lines))
 
 
-if __name__=='__main__':
-	############################
-	########CONFIGURATION#######
-	############################
-	sys.setrecursionlimit(100000)
-	AUTO = True
-	PATH = "resources/"
-	iterLINHAS = 50
-	iterASSOC = 50
-	iterASSOC_D = 500
-	iterations = 200
-	#############################
+def stats_RBTree(PATH,textName,iterLINHAS,iterASSOC,iterations):
+	print(" ▶︎ RBTree:")
 	global rotCounter
 	rotCounter=0
 	null = None
-	instruction = None
 	instructions = list()
 	root = None
 	tree = RBTree()
-	if AUTO:
-		instructions.append(None)
-		filesNames = list()
-		with os.scandir(PATH) as files:
-			for f in files:
-				filesNames.append(f.name)
-		filesNames.sort()
-		for textName in filesNames:
-			print("🔻🔻🔻🔻🔻")
-			print("TEXTO {}".format(textName[-5]))
-			for i in range(iterations):
-				root = None
-				tree = RBTree()
-				rotCounter = 0
-				times = list()
-				t = time.process_time()
-				tree,root = readText(PATH+textName,tree,root)
-				times.append(time.process_time()-t)
-			print("\tAVERAGE INSERT TIME: {}\tROTATIONS: {}".format(sum(times)*1000/len(times),rotCounter))
-			for i in range(iterations):
-				words,null = selectRandomWords(PATH+textName,iterLINHAS)
-				times = list()
-				t = time.process_time()
-				for word in words:
-					if len(instructions) == 1:
-						instructions.append(word)
-					else:
-						instructions[1] = word
-					showLines(instructions, tree, root)
-				times.append(time.process_time()-t)	
-			print("\tAVERAGE LINHAS TIME: {}".format(sum(times)*1000/len(times)))
-			for i in range(iterations):
-				if textName[-5] != "D":
-					words,line = selectRandomWords(PATH+textName,iterASSOC)
-				else:
-					words,line = selectRandomWords(PATH+textName,iterASSOC_D)
-				times = list()
-				t = time.process_time()
-				for word in words:
-					if len(instructions) == 2:
-						instructions[1] = word
-						instructions.append(str(line))
-					else:
-						instructions[1] = word
-					showAssoc(instructions, tree, root)
-				times.append(time.process_time()-t)
-			print("\tAVERAGE ASSOC TIME: {}\n🔺🔺🔺🔺🔺".format(sum(times)*1000/len(times)))
-	else:
-		while instruction != "TCHAU":
-			instructions,instruction = getInstructions()
-			if instruction == "TEXTO":
-				root = None
-				tree = RBTree()
-				tree,root = getText(tree,root)
-			elif instruction== "LINHAS":
-				showLines(instructions, tree, root)
-			elif instruction == "ASSOC":
-				showAssoc(instructions, tree, root)
+	instructions.append(None)
+	for i in range(iterations):
+		root = None
+		tree = RBTree()
+		rotCounter = 0
+		times = list()
+		t = time.process_time()
+		tree,root = readText(PATH+textName,tree,root)
+		times.append(time.process_time()-t)
+	print("\tAVERAGE INSERT TIME: {}\tROTATIONS: {}".format(sum(times)*1000/len(times),rotCounter))
+	for i in range(iterations):
+		words,null = selectRandomWords(PATH+textName,iterLINHAS)
+		times = list()
+		t = time.process_time()
+		for word in words:
+			if len(instructions) == 1:
+				instructions.append(word)
+			else:
+				instructions[1] = word
+			showLines(instructions, tree, root)
+		times.append(time.process_time()-t)	
+	print("\tAVERAGE LINHAS TIME: {}".format(sum(times)*1000/len(times)))
+	for i in range(iterations):
+		words,line = selectRandomWords(PATH+textName,iterASSOC)
+		times = list()
+		t = time.process_time()
+		for word in words:
+			if len(instructions) == 2:
+				instructions[1] = word
+				instructions.append(str(line))
+			else:
+				instructions[1] = word
+			showAssoc(instructions, tree, root)
+		times.append(time.process_time()-t)
+	print("\tAVERAGE ASSOC TIME: {}\n".format(sum(times)*1000/len(times)))
